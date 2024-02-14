@@ -194,10 +194,30 @@
             },
         },
         useUnicodeFont: function (text, font) {
-            let emojis = text.match(/:\w+:/g) || [];
-            let emojiIndices = emojis.map((emoji) => text.indexOf(emoji));
+            let regexResults;
+            let emojiPositions = [];
+            let emojiRegex = /:\w+:/g;
+            while ((regexResults = emojiRegex.exec(text)) !== null) {
+                emojiPositions.push(regexResults.index);
+            }
 
-            return [...text].map((char, i) => (emojiIndices.includes(i) ? char : this.fonts[font](char.charCodeAt(0)))).join("");
+            var converted = "",
+                convert = true;
+            for (var i = 0; i < text.length; i++) {
+                if (!convert && text.charAt(i) === ":") {
+                    convert = true;
+                }
+                if (emojiPositions.indexOf(i) !== -1) {
+                    convert = false;
+                }
+                if (convert) {
+                    converted += this.fonts[font](text.charCodeAt(i));
+                } else {
+                    converted += text.charAt(i);
+                }
+            }
+
+            return converted;
         },
     };
 
@@ -547,7 +567,10 @@
                     $chatBox.value = `${ABF_Utils.useUnicodeFont("AgmaBetterFeatures", "serifItalic")} - [${GM_info.script.version}] - [GnU-Chan]`;
                     $chatBox.focus();
                     break;
-                case "/ping" || "/p":
+                case "ping":
+                case "/ping":
+                case "/p":
+                    if (commandEvent.command === "ping" && commandEvent.messages.length > 0) break;
                     if (parseInt(ping) > 0) {
                         var pingValue = parseInt(ping);
                         if (pingValue >= 0 && pingValue < 40) {
@@ -563,7 +586,9 @@
                     $chatBox.value = `${ABF_Utils.useUnicodeFont("Ping hiện tại - [", "serifItalic")}${ping}${ABF_Utils.useUnicodeFont("] - " + pingRating, "serifItalic")}`;
                     $chatBox.focus();
                     break;
+                case "fps":
                 case "/fps":
+                    if (commandEvent.command === "fps" && commandEvent.messages.length > 0) break;
                     if (parseInt(fps) > 0) {
                         var fpsValue = parseInt(fps);
                         if (fpsValue < 10) {
