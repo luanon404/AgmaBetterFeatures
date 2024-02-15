@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        AgmaBetterFeatures
 // @namespace   https://github.com/luanon404/AgmaBetterFeatures
-// @version     0.0.1
+// @version     0.0.2
 // @description Another script that make agma better ✨
 // @author      GnU-Chan
 // @match       https://agma.io/*
@@ -201,9 +201,9 @@
                 emojiPositions.push(regexResults.index);
             }
 
-            var converted = "",
+            let converted = "",
                 convert = true;
-            for (var i = 0; i < text.length; i++) {
+            for (let i = 0; i < text.length; i++) {
                 if (!convert && text.charAt(i) === ":") {
                     convert = true;
                 }
@@ -219,6 +219,78 @@
 
             return converted;
         },
+        getSkinUrl: function (sourceSelector) {
+            if (sourceSelector === undefined) {
+                sourceSelector = "#skinExampleMenu";
+            }
+            let skinUrlRaw = $(sourceSelector).css("background-image");
+            let parts = skinUrlRaw.split('"');
+            if (parts.length !== 3) {
+                return null;
+            } else {
+                return parts[1];
+            }
+        },
+        useWearables: function (wearables, dropCurrent) {
+            if (dropCurrent === undefined) {
+                dropCurrent = true;
+            }
+            unsafeWindow.azad(true);
+            setTimeout(function () {
+                $("#skinExampleMenu").click();
+                setTimeout(function () {
+                    $("#wearablesTab a").click();
+                    setTimeout(function () {
+                        if (dropCurrent) {
+                            let oldWearables = [ABF_Utils.extractWearableId($("#wearExampleShop1").attr("style")), ABF_Utils.extractWearableId($("#wearExampleShop2").attr("style")), ABF_Utils.extractWearableId($("#wearExampleShop3").attr("style")), ABF_Utils.extractWearableId($("#wearExampleShop4").attr("style")), ABF_Utils.extractWearableId($("#wearExampleShop5").attr("style"))];
+                            oldWearables.forEach(function (id) {
+                                $("#wearableUseBtn" + id).click();
+                            });
+                        }
+                        wearables.forEach(function (id) {
+                            $("#wearableUseBtn" + id).click();
+                        });
+                        setTimeout(function () {
+                            $("#shopModalDialog button.close").click();
+                            setTimeout(function () {
+                                unsafeWindow.setNick(document.getElementById("nick").value);
+                            }, 200);
+                        }, 200);
+                    }, 1000);
+                }, 200);
+            }, 200);
+        },
+        extractWearableId: function (style) {
+            if (style === undefined) {
+                return null;
+            }
+            let pos = style.indexOf('background-image: url("wearables/');
+            if (pos === -1) {
+                return null;
+            }
+            return parseInt(style.substr(pos + 33));
+        },
+        useSkin: function (skinId) {
+            unsafeWindow.azad(true);
+            setTimeout(function () {
+                $("#skinExampleMenu").click();
+                let checkLoaded = function () {
+                    let loaded = $("#skinsFree tr").length > 1;
+                    if (loaded) {
+                        unsafeWindow.toggleSkin(skinId);
+                        setTimeout(function () {
+                            $("#shopModalDialog button.close").click();
+                            setTimeout(function () {
+                                unsafeWindow.setNick(document.getElementById("nick").value);
+                            }, 200);
+                        }, 200);
+                    } else {
+                        setTimeout(checkLoaded, 300);
+                    }
+                };
+                checkLoaded();
+            }, 200);
+        },
     };
 
     // ===== Cấu hình =====
@@ -230,6 +302,8 @@
             version: "",
             active: false,
         },
+        skinChangeTime: 0,
+        wearableChangeTime: 0,
         mouseCoordinates: {
             x: 0,
             y: 0,
@@ -376,10 +450,9 @@
     $menuLogMinimize.style.cursor = "pointer";
     $menuLogMinimize.style.position = "absolute";
     $menuLogMinimize.style.right = "0px";
-    $menuLogMinimize.style.top = "0px";
+    $menuLogMinimize.style.top = "-2px";
     $menuLogMinimize.style.color = "#FFFFFF";
     $menuLogMinimize.style.fontSize = "20px";
-    $menuLogMinimize.style.backgroundColor = "black";
     $menuLogMinimize.style.width = "50px";
     $menuLogMinimize.style.height = "30px";
     $menuLogMinimize.style.display = "inline-flex";
@@ -414,6 +487,12 @@
                 .map((message) => {
                     if (typeof message === "boolean") {
                         return `<span style="color: ${message ? "blue" : "purple"}">${message}</span>`;
+                    }
+                    if (typeof message === "object") {
+                        return `<span style="color: ${color}">${JSON.stringify(message)}</span>`;
+                    }
+                    if (typeof message === "number") {
+                        return `<span style="color: blue">${message}</span>`;
                     }
                     return message;
                 })
@@ -493,10 +572,9 @@
     $menuClientMinimize.style.cursor = "pointer";
     $menuClientMinimize.style.position = "absolute";
     $menuClientMinimize.style.right = "0px";
-    $menuClientMinimize.style.top = "0px";
+    $menuClientMinimize.style.top = "-2px";
     $menuClientMinimize.style.color = "#FFFFFF";
     $menuClientMinimize.style.fontSize = "20px";
-    $menuClientMinimize.style.backgroundColor = "black";
     $menuClientMinimize.style.width = "50px";
     $menuClientMinimize.style.height = "30px";
     $menuClientMinimize.style.display = "inline-flex";
@@ -528,6 +606,115 @@
     $menu.appendChild($menuLog);
     document.body.appendChild($menu);
 
+    // ===== Control Layout =====
+
+    const $menuControlLayout = document.createElement("div");
+    $menuControlLayout.style.position = "fixed";
+    $menuControlLayout.style.right = "10px";
+    $menuControlLayout.style.top = "330px";
+    $menuControlLayout.style.width = "200px";
+    $menuControlLayout.style.height = "230px";
+    $menuControlLayout.style.border = "3px solid #00D2FF";
+    $menuControlLayout.style.zIndex = "9999";
+    $menuControlLayout.style.fontFamily = "Tahoma, sans-serif";
+    $menuControlLayout.style.fontWeight = "bold";
+
+    const $menuControlLayoutHeader = document.createElement("div");
+    $menuControlLayoutHeader.style.width = "100%";
+    $menuControlLayoutHeader.style.height = "30px";
+    $menuControlLayoutHeader.style.background = "#00D2FF";
+    $menuControlLayoutHeader.style.textAlign = "left";
+    $menuControlLayoutHeader.style.padding = "5px";
+    $menuControlLayoutHeader.style.color = "#FFFFFF";
+    $menuControlLayoutHeader.style.display = "inline-flex";
+    $menuControlLayoutHeader.style.alignItems = "center";
+    $menuControlLayoutHeader.style.justifyContent = "center";
+    $menuControlLayoutHeader.textContent = "ABF - Control Layout";
+
+    const $menuControlLayoutContent = document.createElement("div");
+    $menuControlLayoutContent.style.width = "100%";
+    $menuControlLayoutContent.style.height = "calc(100% - 30px)";
+    $menuControlLayoutContent.style.padding = "10px";
+    $menuControlLayoutContent.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
+    $menuControlLayoutContent.style.overflow = "auto";
+
+    // ===== Console Log Option =====
+
+    const $consoleLogOption = document.createElement("div");
+    $consoleLogOption.style.display = "flex";
+    $consoleLogOption.style.justifyContent = "space-between";
+    $consoleLogOption.style.alignItems = "center";
+    $consoleLogOption.style.marginBottom = "10px";
+
+    const $consoleLogText = document.createElement("div");
+    $consoleLogText.textContent = "Console Log";
+    $consoleLogText.style.flex = "1";
+    $consoleLogText.style.fontSize = "16px";
+    $consoleLogText.style.paddingLeft = "5px";
+    $consoleLogText.style.paddingRight = "5px";
+    $consoleLogText.style.color = "green";
+
+    const $checkButton = document.createElement("input");
+    $checkButton.type = "checkbox";
+    $checkButton.style.flex = "0 0 auto";
+    $checkButton.style.transform = "scale(1.25)";
+    $checkButton.style.cursor = "pointer";
+    $checkButton.style.marginLeft = "5px";
+    $checkButton.checked = ABF_Config.menuLogCoordinates.open;
+
+    $checkButton.addEventListener("change", function () {
+        ABF_Config.menuLogCoordinates.open = !ABF_Config.menuLogCoordinates.open;
+        $menuLog.style.display = ABF_Config.menuLogCoordinates.open ? "block" : "none";
+        $menuLog.style.pointerEvents = ABF_Config.menuLogCoordinates.open ? "auto" : "none";
+        updateConfig("menuLogCoordinates", { open: ABF_Config.menuLogCoordinates.open });
+    });
+
+    $consoleLogOption.appendChild($consoleLogText);
+    $consoleLogOption.appendChild($checkButton);
+
+    // ===== Client Menu Option =====
+
+    const $clientMenuOption = document.createElement("div");
+    $clientMenuOption.style.display = "flex";
+    $clientMenuOption.style.justifyContent = "space-between";
+    $clientMenuOption.style.alignItems = "center";
+    $clientMenuOption.style.marginBottom = "10px";
+
+    const $clientMenuText = document.createElement("div");
+    $clientMenuText.textContent = "Client Menu";
+    $clientMenuText.style.flex = "1";
+    $clientMenuText.style.fontSize = "16px";
+    $clientMenuText.style.paddingLeft = "5px";
+    $clientMenuText.style.paddingRight = "5px";
+    $clientMenuText.style.color = "green";
+
+    const $clientCheckButton = document.createElement("input");
+    $clientCheckButton.type = "checkbox";
+    $clientCheckButton.style.flex = "0 0 auto";
+    $clientCheckButton.style.transform = "scale(1.25)";
+    $clientCheckButton.style.marginLeft = "5px";
+    $clientCheckButton.style.cursor = "pointer";
+    $clientCheckButton.checked = ABF_Config.menuClientCoordinates.open;
+
+    $clientCheckButton.addEventListener("change", function () {
+        ABF_Config.menuClientCoordinates.open = !ABF_Config.menuClientCoordinates.open;
+        $menuClient.style.display = ABF_Config.menuClientCoordinates.open ? "block" : "none";
+        $menuClient.style.pointerEvents = ABF_Config.menuClientCoordinates.open ? "auto" : "none";
+        updateConfig("menuClientCoordinates", { open: ABF_Config.menuClientCoordinates.open });
+    });
+
+    $clientMenuOption.appendChild($clientMenuText);
+    $clientMenuOption.appendChild($clientCheckButton);
+
+    $menuControlLayoutContent.appendChild($consoleLogOption);
+    $menuControlLayoutContent.appendChild($clientMenuOption);
+
+    $menuControlLayout.appendChild($menuControlLayoutHeader);
+    $menuControlLayout.appendChild($menuControlLayoutContent);
+
+    const $leaderboard = document.querySelector("#leaderboard");
+    $leaderboard.parentNode.insertBefore($menuControlLayout, $leaderboard.nextSibling);
+
     // ===== Event =====
 
     const ABF_Events = {
@@ -546,10 +733,17 @@
                     gnlog("i", "halt-keybind:", ABF_Config.halt.active);
                     ABF_Main.halt.apply(this);
                     break;
+                // testing
+                case "KeyL":
+                    window.anabel = !window.anabel;
+                    gnlog("i", "anabel-keybind:", window.anabel);
+                    break;
+                // testing
             }
             GM_setValue("config", ABF_Config);
         },
         commandEvent: function (commandEvent) {
+            gnlog("i", "commandEvent:", commandEvent);
             unsafeWindow.setFPS(1);
 
             let pingRating = "";
@@ -572,16 +766,17 @@
                 case "/p":
                     if (commandEvent.command === "ping" && commandEvent.messages.length > 0) break;
                     if (parseInt(ping) > 0) {
-                        var pingValue = parseInt(ping);
+                        let pingValue = parseInt(ping);
                         if (pingValue >= 0 && pingValue < 40) {
-                            pingRating = "Ổn vcl ✅";
+                            pingRating = "Ổn vcl :shamrock:";
                         } else if (pingValue >= 40 && pingValue < 70) {
-                            pingRating = "Tạm ổn ✅";
+                            pingRating = "Tạm ổn :shamrock:";
                         } else {
-                            pingRating = "Chịu rồi 🤬";
+                            pingRating = "Chịu rồi :rage:";
                         }
                     } else {
-                        pingRating = "Ảo ma lazada 😵‍💫";
+                        ping = "???";
+                        pingRating = "Ảo ma lazada :dizzy_face:";
                     }
                     $chatBox.value = `${ABF_Utils.useUnicodeFont("Ping hiện tại - [", "serifItalic")}${ping}${ABF_Utils.useUnicodeFont("] - " + pingRating, "serifItalic")}`;
                     $chatBox.focus();
@@ -590,16 +785,17 @@
                 case "/fps":
                     if (commandEvent.command === "fps" && commandEvent.messages.length > 0) break;
                     if (parseInt(fps) > 0) {
-                        var fpsValue = parseInt(fps);
+                        let fpsValue = parseInt(fps);
                         if (fpsValue < 10) {
-                            fpsRating = "Chịu rồi 🤬";
+                            fpsRating = "Chịu rồi :rage:";
                         } else if (fpsValue >= 10 && fpsValue < 60) {
-                            fpsRating = "Tạm ổn ✅";
+                            fpsRating = "Tạm ổn :shamrock:";
                         } else {
-                            fpsRating = "Ổn vcl ✅";
+                            fpsRating = "Ổn vcl :shamrock:";
                         }
                     } else {
-                        fpsRating = "Ảo ma lazada 😵‍💫";
+                        fps = "???";
+                        fpsRating = "Ảo ma lazada :dizzy_face:";
                     }
                     $chatBox.value = `${ABF_Utils.useUnicodeFont("Fps hiện tại - [", "serifItalic")}${fps}${ABF_Utils.useUnicodeFont("] - " + fpsRating, "serifItalic")}`;
                     $chatBox.focus();
@@ -610,6 +806,16 @@
                     ABF_Config.halt.active = !ABF_Config.halt.active;
                     gnlog("i", "halt-command:", ABF_Config.halt.active);
                     ABF_Main.halt.apply(this);
+                    break;
+                // Funniest command
+                case "pig":
+                case "/pig":
+                    if (commandEvent.command === "pig" && commandEvent.messages.length > 0) break;
+                    window.pigs = window.pigs || ["🐷", "🐖", "🐽", ":pig:"];
+                    window.pigs.push(window.pigs.shift());
+                    let name = commandEvent.messages.length > 0 ? commandEvent.messages.join(" ") : "arc";
+                    $chatBox.value = name + " <= " + window.pigs[0];
+                    $chatBox.focus();
                     break;
             }
         },
@@ -657,9 +863,165 @@
             $mCanvas.dispatchEvent(new MouseEvent("mousemove", { clientX: posX, clientY: posY, bubbles: true }));
             halt.active && requestAnimationFrame(ABF_Main.halt);
         },
+        nameCopier: function () {
+            let copyNameItem = document.createElement("li");
+            copyNameItem.className = "contextmenu-item enabled";
+
+            let iconDiv = document.createElement("div");
+            iconDiv.className = "context-icon";
+            let icon = document.createElement("i");
+            icon.className = "fa fa-copy";
+            icon.style.fontSize = "2em";
+            iconDiv.appendChild(icon);
+
+            let textP = document.createElement("p");
+            textP.textContent = "Copy Name To Chat";
+
+            copyNameItem.appendChild(iconDiv);
+            copyNameItem.appendChild(textP);
+
+            let contextSpectate = document.querySelector("#contextSpectate");
+            contextSpectate.parentNode.insertBefore(copyNameItem, contextSpectate.nextSibling);
+
+            copyNameItem.addEventListener("click", function () {
+                let contextPlayerName = document.querySelector("#contextPlayerName").textContent.trim();
+                if (contextPlayerName === "(no player selected)") {
+                    let curser = document.querySelector("#curser");
+                    curser.textContent = "Không có người chơi nào được chọn 🚫";
+                    curser.style.display = "block";
+                    curser.style.color = "rgb(255, 0, 0)";
+                    window.setTimeout(function () {
+                        curser.style.display = "none";
+                    }, 5000);
+                } else {
+                    gnlog("i", "Copy name to chat:", contextPlayerName);
+                    let chtbox = document.querySelector("#chtbox");
+                    chtbox.value = chtbox.value + contextPlayerName;
+                    chtbox.focus();
+                    let settingsBtn = document.querySelector("#settingsBtn");
+                    settingsBtn.click();
+                    setTimeout(function () {
+                        settingsBtn.click();
+                    }, 20);
+                }
+            });
+        },
+        skinApplier: function () {
+            let useWearablesItem = document.createElement("li");
+            useWearablesItem.className = "contextmenu-item enabled";
+            let wearablesIconDiv = document.createElement("div");
+            wearablesIconDiv.className = "context-icon";
+            let wearablesIcon = document.createElement("i");
+            wearablesIcon.className = "fa fa-graduation-cap";
+            wearablesIcon.style.fontSize = "2em";
+            let wearablesTextP = document.createElement("p");
+            wearablesTextP.textContent = "Use Player's Wearables";
+            wearablesIconDiv.appendChild(wearablesIcon);
+            useWearablesItem.appendChild(wearablesIconDiv);
+            useWearablesItem.appendChild(wearablesTextP);
+
+            let contextPlayer = document.querySelector("#contextPlayer");
+            contextPlayer.parentNode.insertBefore(useWearablesItem, contextPlayer.nextSibling);
+
+            let useSkinItem = document.createElement("li");
+            useSkinItem.className = "contextmenu-item enabled";
+            let skinIconDiv = document.createElement("div");
+            skinIconDiv.className = "context-icon";
+            let skinIcon = document.createElement("i");
+            skinIcon.className = "fa fa-eye";
+            skinIcon.style.fontSize = "2em";
+            let skinTextP = document.createElement("p");
+            skinTextP.textContent = "Use Player's Skin";
+            skinIconDiv.appendChild(skinIcon);
+            useSkinItem.appendChild(skinIconDiv);
+            useSkinItem.appendChild(skinTextP);
+
+            contextPlayer.parentNode.insertBefore(useSkinItem, contextPlayer.nextSibling);
+
+            useSkinItem.addEventListener("click", function () {
+                let skinUrl = ABF_Utils.getSkinUrl("#contextPlayerSkin");
+                if (skinUrl === null) {
+                    let curser = document.querySelector("#curser");
+                    curser.textContent = "Người chơi này không có skin 🚫";
+                    curser.style.display = "block";
+                    curser.style.color = "rgb(255, 0, 0)";
+                    window.setTimeout(function () {
+                        curser.style.display = "none";
+                    }, 5000);
+                } else {
+                    let skinId = parseInt(skinUrl.substr(22));
+                    let currentTime = Date.now();
+                    if (currentTime - ABF_Config.skinChangeTime < 5000) {
+                        let curser = document.querySelector("#curser");
+                        curser.textContent = "Vui lòng chờ 5 giây sau mỗi lần thay đổi skin 🕒";
+                        curser.style.display = "block";
+                        curser.style.color = "rgb(255, 0, 0)";
+                        window.setTimeout(function () {
+                            curser.style.display = "none";
+                        }, 5000);
+                    } else {
+                        ABF_Config.skinChangeTime = currentTime;
+                        updateConfig("skinChangeTime", ABF_Config.skinChangeTime);
+                        gnlog("i", "Use skinId:", skinId);
+                        ABF_Utils.useSkin(skinId);
+                    }
+                }
+            });
+
+            useWearablesItem.addEventListener("click", function () {
+                let wearables = [ABF_Utils.extractWearableId(document.querySelector("#contextPlayerWear1").style.backgroundImage), ABF_Utils.extractWearableId(document.querySelector("#contextPlayerWear2").style.backgroundImage), ABF_Utils.extractWearableId(document.querySelector("#contextPlayerWear3").style.backgroundImage), ABF_Utils.extractWearableId(document.querySelector("#contextPlayerWear4").style.backgroundImage), ABF_Utils.extractWearableId(document.querySelector("#contextPlayerWear5").style.backgroundImage)];
+                if (wearables.every((wearable) => wearable === null)) {
+                    let curser = document.querySelector("#curser");
+                    curser.textContent = "Người chơi này không có wearables 🚫";
+                    curser.style.display = "block";
+                    curser.style.color = "rgb(255, 0, 0)";
+                    window.setTimeout(function () {
+                        curser.style.display = "none";
+                    }, 5000);
+                } else {
+                    let currentTime = Date.now();
+                    if (currentTime - ABF_Config.wearableChangeTime < 5000) {
+                        let curser = document.querySelector("#curser");
+                        curser.textContent = "Vui lòng chờ 5 giây sau mỗi lần thay đổi wearables 🕒";
+                        curser.style.display = "block";
+                        curser.style.color = "rgb(255, 0, 0)";
+                        window.setTimeout(function () {
+                            curser.style.display = "none";
+                        }, 5000);
+                    } else {
+                        ABF_Config.wearableChangeTime = currentTime;
+                        updateConfig("wearableChangeTime", ABF_Config.wearableChangeTime);
+                        gnlog("i", "Use wearables:", wearables);
+                        unsafeWindow.useWearables(wearables);
+                    }
+                }
+            });
+        },
     };
 
     // ===== Init =====
+
+    // testing
+    window.anabel = true;
+
+    unsafeWindow.onmessagesetter = Object.getOwnPropertyDescriptor(WebSocket.prototype, "onmessage").set;
+    Object.defineProperty(unsafeWindow.WebSocket.prototype, "onmessage", {
+        set() {
+            console.log("getCalled", arguments.length, arguments[0]);
+            let old = arguments[0];
+            arguments[0] = function (_0xff1eb2) {
+                if (window.anabel) {
+                    let arrayBuffer = _0xff1eb2.data;
+                    let decoder = new TextDecoder("utf-8");
+                    let text = decoder.decode(arrayBuffer);
+                    // console.log(text);
+                    old.apply(this, arguments);
+                }
+            };
+            return unsafeWindow.onmessagesetter.apply(this, arguments);
+        },
+    });
+    // testing
 
     updateConfig("mouseCoordinates", _ABF_DefaultConfig.mouseCoordinates);
     document.querySelector("body").addEventListener("mousemove", function (event) {
@@ -673,8 +1035,9 @@
         if (code === Enter || code === NumpadEnter) {
             let messages = target.value.split(" "),
                 commandEvent = new Event("commandEvent", { bubbles: true });
-            commandEvent.command = messages.pop();
-            commandEvent.messages = messages;
+            messages = messages.filter((message) => message !== "" && message !== "\t" && message !== "\n" && message !== "\r");
+            commandEvent.command = messages.shift();
+            commandEvent.messages = messages.map((message) => message.trim());
             window.dispatchEvent(commandEvent);
         }
     });
@@ -682,6 +1045,12 @@
     ABF_Main.lineSplitHelper();
     updateConfig("halt", _ABF_DefaultConfig.halt);
 
+    updateConfig("skinChangeTime", _ABF_DefaultConfig.skinChangeTime);
+    updateConfig("wearableChangeTime", _ABF_DefaultConfig.wearableChangeTime);
+    ABF_Main.nameCopier();
+    ABF_Main.skinApplier();
+
     window.addEventListener("keyup", ABF_Events.keyup);
     window.addEventListener("commandEvent", ABF_Events.commandEvent);
+    gnlog("i", "Khởi tạo thành công");
 })();
