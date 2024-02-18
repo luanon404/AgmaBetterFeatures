@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        AgmaBetterFeatures
 // @namespace   https://github.com/luanon404/AgmaBetterFeatures
-// @version     0.0.2
+// @version     0.0.3
 // @description Another script that make agma better ✨
 // @author      GnU-Chan
 // @match       https://agma.io/*
@@ -402,6 +402,115 @@
         })
         .catch((err) => ABF_Utils.gnLog("e", "Lỗi khi kiểm tra cập nhật:", err));
 
+    // ===== Control Layout =====
+
+    const $menuControlLayout = document.createElement("div");
+    $menuControlLayout.style.position = "fixed";
+    $menuControlLayout.style.right = "10px";
+    $menuControlLayout.style.top = "330px";
+    $menuControlLayout.style.width = "200px";
+    $menuControlLayout.style.height = "230px";
+    $menuControlLayout.style.border = "3px solid #00D2FF";
+    $menuControlLayout.style.zIndex = "9999";
+    $menuControlLayout.style.fontFamily = "Tahoma, sans-serif";
+    $menuControlLayout.style.fontWeight = "bold";
+
+    const $menuControlLayoutHeader = document.createElement("div");
+    $menuControlLayoutHeader.style.width = "100%";
+    $menuControlLayoutHeader.style.height = "30px";
+    $menuControlLayoutHeader.style.background = "#00D2FF";
+    $menuControlLayoutHeader.style.textAlign = "left";
+    $menuControlLayoutHeader.style.padding = "5px";
+    $menuControlLayoutHeader.style.color = "#FFFFFF";
+    $menuControlLayoutHeader.style.display = "inline-flex";
+    $menuControlLayoutHeader.style.alignItems = "center";
+    $menuControlLayoutHeader.style.justifyContent = "center";
+    $menuControlLayoutHeader.textContent = "ABF - Control Layout";
+
+    const $menuControlLayoutContent = document.createElement("div");
+    $menuControlLayoutContent.style.width = "100%";
+    $menuControlLayoutContent.style.height = "calc(100% - 30px)";
+    $menuControlLayoutContent.style.padding = "10px";
+    $menuControlLayoutContent.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
+    $menuControlLayoutContent.style.overflow = "auto";
+
+    // ===== Console Log Option =====
+
+    const $consoleLogOption = document.createElement("div");
+    $consoleLogOption.style.display = "flex";
+    $consoleLogOption.style.justifyContent = "space-between";
+    $consoleLogOption.style.alignItems = "center";
+    $consoleLogOption.style.marginBottom = "10px";
+
+    const $consoleLogText = document.createElement("div");
+    $consoleLogText.textContent = "Console Log";
+    $consoleLogText.style.flex = "1";
+    $consoleLogText.style.fontSize = "16px";
+    $consoleLogText.style.paddingLeft = "5px";
+    $consoleLogText.style.paddingRight = "5px";
+    $consoleLogText.style.color = "green";
+
+    const $consoleLogCheckButton = document.createElement("input");
+    $consoleLogCheckButton.type = "checkbox";
+    $consoleLogCheckButton.style.flex = "0 0 auto";
+    $consoleLogCheckButton.style.transform = "scale(1.25)";
+    $consoleLogCheckButton.style.cursor = "pointer";
+    $consoleLogCheckButton.style.marginLeft = "5px";
+    $consoleLogCheckButton.checked = ABF_Config.menuLogCoordinates.open;
+
+    $consoleLogCheckButton.addEventListener("change", function () {
+        ABF_Config.menuLogCoordinates.open = !ABF_Config.menuLogCoordinates.open;
+        $menuLog.style.display = ABF_Config.menuLogCoordinates.open ? "block" : "none";
+        $menuLog.style.pointerEvents = ABF_Config.menuLogCoordinates.open ? "auto" : "none";
+        updateConfig("menuLogCoordinates", { open: ABF_Config.menuLogCoordinates.open });
+    });
+
+    $consoleLogOption.appendChild($consoleLogText);
+    $consoleLogOption.appendChild($consoleLogCheckButton);
+
+    // ===== Client Menu Option =====
+
+    const $clientMenuOption = document.createElement("div");
+    $clientMenuOption.style.display = "flex";
+    $clientMenuOption.style.justifyContent = "space-between";
+    $clientMenuOption.style.alignItems = "center";
+    $clientMenuOption.style.marginBottom = "10px";
+
+    const $clientMenuText = document.createElement("div");
+    $clientMenuText.textContent = "Client Menu";
+    $clientMenuText.style.flex = "1";
+    $clientMenuText.style.fontSize = "16px";
+    $clientMenuText.style.paddingLeft = "5px";
+    $clientMenuText.style.paddingRight = "5px";
+    $clientMenuText.style.color = "green";
+
+    const $clientCheckButton = document.createElement("input");
+    $clientCheckButton.type = "checkbox";
+    $clientCheckButton.style.flex = "0 0 auto";
+    $clientCheckButton.style.transform = "scale(1.25)";
+    $clientCheckButton.style.marginLeft = "5px";
+    $clientCheckButton.style.cursor = "pointer";
+    $clientCheckButton.checked = ABF_Config.menuClientCoordinates.open;
+
+    $clientCheckButton.addEventListener("change", function () {
+        ABF_Config.menuClientCoordinates.open = !ABF_Config.menuClientCoordinates.open;
+        $menuClient.style.display = ABF_Config.menuClientCoordinates.open ? "block" : "none";
+        $menuClient.style.pointerEvents = ABF_Config.menuClientCoordinates.open ? "auto" : "none";
+        updateConfig("menuClientCoordinates", { open: ABF_Config.menuClientCoordinates.open });
+    });
+
+    $clientMenuOption.appendChild($clientMenuText);
+    $clientMenuOption.appendChild($clientCheckButton);
+
+    $menuControlLayoutContent.appendChild($consoleLogOption);
+    $menuControlLayoutContent.appendChild($clientMenuOption);
+
+    $menuControlLayout.appendChild($menuControlLayoutHeader);
+    $menuControlLayout.appendChild($menuControlLayoutContent);
+
+    const $leaderboard = document.querySelector("#leaderboard");
+    $leaderboard.parentNode.insertBefore($menuControlLayout, $leaderboard.nextSibling);
+
     // ===== Menu chính =====
 
     const $menu = document.createElement("div");
@@ -464,6 +573,7 @@
         ABF_Config.menuLogCoordinates.open = !ABF_Config.menuLogCoordinates.open;
         $menuLog.style.display = ABF_Config.menuLogCoordinates.open ? "block" : "none";
         $menuLog.style.pointerEvents = ABF_Config.menuLogCoordinates.open ? "auto" : "none";
+        $consoleLogCheckButton.checked = ABF_Config.menuLogCoordinates.open;
         updateConfig("menuLogCoordinates", { open: ABF_Config.menuLogCoordinates.open });
     });
 
@@ -586,6 +696,7 @@
         ABF_Config.menuClientCoordinates.open = !ABF_Config.menuClientCoordinates.open;
         $menuClient.style.display = ABF_Config.menuClientCoordinates.open ? "block" : "none";
         $menuClient.style.pointerEvents = ABF_Config.menuClientCoordinates.open ? "auto" : "none";
+        $clientCheckButton.checked = ABF_Config.menuClientCoordinates.open;
         updateConfig("menuClientCoordinates", { open: ABF_Config.menuClientCoordinates.open });
     });
 
@@ -606,115 +717,6 @@
     $menu.appendChild($menuLog);
     document.body.appendChild($menu);
 
-    // ===== Control Layout =====
-
-    const $menuControlLayout = document.createElement("div");
-    $menuControlLayout.style.position = "fixed";
-    $menuControlLayout.style.right = "10px";
-    $menuControlLayout.style.top = "330px";
-    $menuControlLayout.style.width = "200px";
-    $menuControlLayout.style.height = "230px";
-    $menuControlLayout.style.border = "3px solid #00D2FF";
-    $menuControlLayout.style.zIndex = "9999";
-    $menuControlLayout.style.fontFamily = "Tahoma, sans-serif";
-    $menuControlLayout.style.fontWeight = "bold";
-
-    const $menuControlLayoutHeader = document.createElement("div");
-    $menuControlLayoutHeader.style.width = "100%";
-    $menuControlLayoutHeader.style.height = "30px";
-    $menuControlLayoutHeader.style.background = "#00D2FF";
-    $menuControlLayoutHeader.style.textAlign = "left";
-    $menuControlLayoutHeader.style.padding = "5px";
-    $menuControlLayoutHeader.style.color = "#FFFFFF";
-    $menuControlLayoutHeader.style.display = "inline-flex";
-    $menuControlLayoutHeader.style.alignItems = "center";
-    $menuControlLayoutHeader.style.justifyContent = "center";
-    $menuControlLayoutHeader.textContent = "ABF - Control Layout";
-
-    const $menuControlLayoutContent = document.createElement("div");
-    $menuControlLayoutContent.style.width = "100%";
-    $menuControlLayoutContent.style.height = "calc(100% - 30px)";
-    $menuControlLayoutContent.style.padding = "10px";
-    $menuControlLayoutContent.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
-    $menuControlLayoutContent.style.overflow = "auto";
-
-    // ===== Console Log Option =====
-
-    const $consoleLogOption = document.createElement("div");
-    $consoleLogOption.style.display = "flex";
-    $consoleLogOption.style.justifyContent = "space-between";
-    $consoleLogOption.style.alignItems = "center";
-    $consoleLogOption.style.marginBottom = "10px";
-
-    const $consoleLogText = document.createElement("div");
-    $consoleLogText.textContent = "Console Log";
-    $consoleLogText.style.flex = "1";
-    $consoleLogText.style.fontSize = "16px";
-    $consoleLogText.style.paddingLeft = "5px";
-    $consoleLogText.style.paddingRight = "5px";
-    $consoleLogText.style.color = "green";
-
-    const $checkButton = document.createElement("input");
-    $checkButton.type = "checkbox";
-    $checkButton.style.flex = "0 0 auto";
-    $checkButton.style.transform = "scale(1.25)";
-    $checkButton.style.cursor = "pointer";
-    $checkButton.style.marginLeft = "5px";
-    $checkButton.checked = ABF_Config.menuLogCoordinates.open;
-
-    $checkButton.addEventListener("change", function () {
-        ABF_Config.menuLogCoordinates.open = !ABF_Config.menuLogCoordinates.open;
-        $menuLog.style.display = ABF_Config.menuLogCoordinates.open ? "block" : "none";
-        $menuLog.style.pointerEvents = ABF_Config.menuLogCoordinates.open ? "auto" : "none";
-        updateConfig("menuLogCoordinates", { open: ABF_Config.menuLogCoordinates.open });
-    });
-
-    $consoleLogOption.appendChild($consoleLogText);
-    $consoleLogOption.appendChild($checkButton);
-
-    // ===== Client Menu Option =====
-
-    const $clientMenuOption = document.createElement("div");
-    $clientMenuOption.style.display = "flex";
-    $clientMenuOption.style.justifyContent = "space-between";
-    $clientMenuOption.style.alignItems = "center";
-    $clientMenuOption.style.marginBottom = "10px";
-
-    const $clientMenuText = document.createElement("div");
-    $clientMenuText.textContent = "Client Menu";
-    $clientMenuText.style.flex = "1";
-    $clientMenuText.style.fontSize = "16px";
-    $clientMenuText.style.paddingLeft = "5px";
-    $clientMenuText.style.paddingRight = "5px";
-    $clientMenuText.style.color = "green";
-
-    const $clientCheckButton = document.createElement("input");
-    $clientCheckButton.type = "checkbox";
-    $clientCheckButton.style.flex = "0 0 auto";
-    $clientCheckButton.style.transform = "scale(1.25)";
-    $clientCheckButton.style.marginLeft = "5px";
-    $clientCheckButton.style.cursor = "pointer";
-    $clientCheckButton.checked = ABF_Config.menuClientCoordinates.open;
-
-    $clientCheckButton.addEventListener("change", function () {
-        ABF_Config.menuClientCoordinates.open = !ABF_Config.menuClientCoordinates.open;
-        $menuClient.style.display = ABF_Config.menuClientCoordinates.open ? "block" : "none";
-        $menuClient.style.pointerEvents = ABF_Config.menuClientCoordinates.open ? "auto" : "none";
-        updateConfig("menuClientCoordinates", { open: ABF_Config.menuClientCoordinates.open });
-    });
-
-    $clientMenuOption.appendChild($clientMenuText);
-    $clientMenuOption.appendChild($clientCheckButton);
-
-    $menuControlLayoutContent.appendChild($consoleLogOption);
-    $menuControlLayoutContent.appendChild($clientMenuOption);
-
-    $menuControlLayout.appendChild($menuControlLayoutHeader);
-    $menuControlLayout.appendChild($menuControlLayoutContent);
-
-    const $leaderboard = document.querySelector("#leaderboard");
-    $leaderboard.parentNode.insertBefore($menuControlLayout, $leaderboard.nextSibling);
-
     // ===== Event =====
 
     const ABF_Events = {
@@ -733,12 +735,10 @@
                     gnlog("i", "halt-keybind:", ABF_Config.halt.active);
                     ABF_Main.halt.apply(this);
                     break;
-                // testing
-                case "KeyL":
-                    window.anabel = !window.anabel;
-                    gnlog("i", "anabel-keybind:", window.anabel);
+                case "KeyP":
+                    window.chatblock = !window.chatblock;
+                    gnlog("i", "chatblock:", window.chatblock);
                     break;
-                // testing
             }
             GM_setValue("config", ABF_Config);
         },
@@ -997,31 +997,109 @@
                 }
             });
         },
+        pig: function () {
+            let pigItem = document.createElement("li");
+            pigItem.className = "contextmenu-item enabled";
+
+            let iconDiv = document.createElement("div");
+            iconDiv.className = "context-icon";
+            let icon = document.createElement("i");
+            icon.textContent = "🐷";
+            icon.style.fontSize = "2em";
+            iconDiv.appendChild(icon);
+
+            let textP = document.createElement("p");
+            textP.textContent = "PIG";
+
+            pigItem.appendChild(iconDiv);
+            pigItem.appendChild(textP);
+
+            let contextSpectate = document.querySelector("#contextSpectate");
+            contextSpectate.parentNode.insertBefore(pigItem, contextSpectate.nextSibling);
+
+            pigItem.addEventListener("click", function () {
+                let contextPlayerName = document.querySelector("#contextPlayerName").textContent.trim();
+                if (contextPlayerName === "(no player selected)") {
+                    let curser = document.querySelector("#curser");
+                    curser.textContent = "Không có người chơi nào được chọn 🚫";
+                    curser.style.display = "block";
+                    curser.style.color = "rgb(255, 0, 0)";
+                    window.setTimeout(function () {
+                        curser.style.display = "none";
+                    }, 5000);
+                } else {
+                    let $chtbox = document.querySelector("#chtbox");
+                    let name = contextPlayerName;
+                    $chtbox.value = "/pig " + name;
+                    $chtbox.focus();
+
+                    let settingsBtn = document.querySelector("#settingsBtn");
+                    settingsBtn.click();
+                    setTimeout(function () {
+                        settingsBtn.click();
+                    }, 20);
+
+                    // setInterval(function () {
+                    //     var ev = new KeyboardEvent("keydown", { altKey: false, bubbles: true, cancelBubble: false, cancelable: true, charCode: 0, code: "Enter", composed: true, ctrlKey: false, currentTarget: null, defaultPrevented: true, detail: 0, eventPhase: 0, isComposing: false, isTrusted: true, key: "Enter", keyCode: 13, location: 0, metaKey: false, repeat: false, returnValue: false, shiftKey: false, type: "keydown", which: 13 });
+
+                    //     $chtbox.dispatchEvent(new KeyboardEvent("keydown", ev));
+                    // }, 10000);
+                }
+            });
+        },
     };
 
     // ===== Init =====
 
-    // testing
-    window.anabel = true;
+    window.chatblock = false;
 
     unsafeWindow.onmessagesetter = Object.getOwnPropertyDescriptor(WebSocket.prototype, "onmessage").set;
     Object.defineProperty(unsafeWindow.WebSocket.prototype, "onmessage", {
         set() {
-            console.log("getCalled", arguments.length, arguments[0]);
             let old = arguments[0];
-            arguments[0] = function (_0xff1eb2) {
-                if (window.anabel) {
-                    let arrayBuffer = _0xff1eb2.data;
-                    let decoder = new TextDecoder("utf-8");
-                    let text = decoder.decode(arrayBuffer);
-                    // console.log(text);
-                    old.apply(this, arguments);
+            arguments[0] = function (messageEvent) {
+                let data = messageEvent.data;
+                if (data instanceof ArrayBuffer) {
+                    if (data.byteLength % 2 === 0) {
+                        data = new Uint16Array(data);
+                        if (data[0] === 1123 || data[0] == 33891) {
+                            data = data.slice(data[0] == 1123 ? 7 : 9, -1);
+                            let index = data.indexOf(0);
+                            let username = String.fromCharCode.apply(null, data.slice(0, index));
+                            if (username != "Spectator" && document.getElementById("nick").value != username) {
+                                let messages = String.fromCharCode.apply(null, data.slice(index + 1)).split(" ");
+                                let command = messages.shift();
+                                let $chatBox = document.querySelector("#chtbox");
+                                if (command === "/pig") {
+                                    window.pigs = window.pigs || ["🐷", "🐖", "🐽", ":pig:"];
+                                    window.pigs.push(window.pigs.shift());
+                                    $chatBox.value = messages.join("") + " <= " + window.pigs[0];
+                                    $chatBox.focus();
+                                }
+                                if (command === "pig") {
+                                    window.pigs = window.pigs || ["🐷", "🐖", "🐽", ":pig:"];
+                                    window.pigs.push(window.pigs.shift());
+                                    $chatBox.value = "arc" + " <= " + window.pigs[0];
+                                    $chatBox.focus();
+                                }
+                                if (window.chatblock) {
+                                    window.pigs = window.pigs || ["🐷", "🐖", "🐽", ":pig:"];
+                                    window.pigs.push(window.pigs.shift());
+                                    $chatBox.value = username + " <= " + window.pigs[0];
+                                    $chatBox.focus();
+                                }
+                            } else {
+                                console.log("i", "WebSocket message:", data[0]);
+                                console.log("i", "WebSocket message:", String.fromCharCode.apply(null, data));
+                            }
+                        }
+                    }
                 }
+                old.apply(this, arguments);
             };
             return unsafeWindow.onmessagesetter.apply(this, arguments);
         },
     });
-    // testing
 
     updateConfig("mouseCoordinates", _ABF_DefaultConfig.mouseCoordinates);
     document.querySelector("body").addEventListener("mousemove", function (event) {
@@ -1049,6 +1127,7 @@
     updateConfig("wearableChangeTime", _ABF_DefaultConfig.wearableChangeTime);
     ABF_Main.nameCopier();
     ABF_Main.skinApplier();
+    ABF_Main.pig();
 
     window.addEventListener("keyup", ABF_Events.keyup);
     window.addEventListener("commandEvent", ABF_Events.commandEvent);
