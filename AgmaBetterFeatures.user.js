@@ -585,6 +585,18 @@
     $menuLogContent.style.userSelect = "text";
     $menuLogContent.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
 
+    
+    $menuLogContent.addEventListener("wheel", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    
+        let delta = event.deltaY || event.detail || event.wheelDelta;
+    
+        requestAnimationFrame(function() {
+            $menuLogContent.scrollTop += delta;
+        });
+    }, { passive: false });
+
     const gnlog = function (mode, ...messages) {
         let modes = {
             e: "red",
@@ -707,6 +719,17 @@
     $menuClientContent.style.overflow = "scroll";
     $menuClientContent.style.userSelect = "text";
     $menuClientContent.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
+
+    $menuClientContent.addEventListener("wheel", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    
+        let delta = event.deltaY || event.detail || event.wheelDelta;
+    
+        requestAnimationFrame(function() {
+            $menuClientContent.scrollTop += delta;
+        });
+    }, { passive: false });
 
     $menuClientHeader.appendChild($menuClientMinimize);
     $menuClient.appendChild($menuClientHeader);
